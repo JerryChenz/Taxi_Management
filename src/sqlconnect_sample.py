@@ -14,6 +14,13 @@ try:
         record = cursor.fetchone()
         print("You're connected to database: ", record)
 
+        cursor.execute("Select * From payments Where driver_id = 'D1'")
+
+        driver_result = cursor.fetchall()
+
+        for x in driver_result:
+            print(x)
+
 except Error as e:
     print("Error while connecting to MySQL", e)
 finally:
