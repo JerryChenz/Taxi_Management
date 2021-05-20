@@ -1,11 +1,17 @@
 import mysql.connector
 from mysql.connector import Error
 
+mysql_host = '192.168.1.150'
+mysql_salesdb = 'salesdb'
+mysql_inventorydb = 'inventory'
+mysql_user = 'root'
+mysql_pw = '62355983'
+
 try:
-    connection = mysql.connector.connect(host='192.168.1.150',
-                                         database='salesdb',
-                                         user='root',
-                                         password='62355983')
+    connection = mysql.connector.connect(host=mysql_host,
+                                         database=mysql_salesdb,
+                                         user=mysql_user,
+                                         password=mysql_pw)
     if connection.is_connected():
         db_Info = connection.get_server_info()
         print("Connected to MySQL Server version ", db_Info)
