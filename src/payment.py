@@ -1,4 +1,7 @@
 class Payment:
+  # non scheduled deposit #todo change
+  # scheduled payment
+
   def __init__(self, d_Id, pay_Id, pay_Date, pFrom, pTo, paid, bank):
     self.driverId = d_Id
     self.paymentId = pay_Id

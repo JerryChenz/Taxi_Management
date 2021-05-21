@@ -7,6 +7,7 @@ mysql_inventorydb = 'inventory'
 mysql_user = 'root'
 mysql_pw = '62355983'
 
+'''
 try:
     connection = mysql.connector.connect(host=mysql_host,
                                          database=mysql_salesdb,
@@ -34,3 +35,4 @@ finally:
         cursor.close()
         connection.close()
         print("MySQL connection is closed")
+'''
