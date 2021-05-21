@@ -4,6 +4,7 @@ from hanson_db import mysql_host, mysql_salesdb, mysql_user, mysql_pw
 import mysql.connector
 from mysql.connector import Error
 from datetime import datetime
+from payment import Payment, Deposit
 
 addPayment_win = Tk()
 addPayment_win.title('Add_payment')
@@ -19,6 +20,9 @@ def okClick():
     else:
         successLabel = Label(addPayment_win, text="operation canceled!")
     successLabel.grid(row=10, column=0)
+
+def setPayment():
+    pass
 
 def db_insert():
     try:
