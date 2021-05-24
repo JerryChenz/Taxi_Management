@@ -5,7 +5,7 @@ from hanson_db import mysql_host, mysql_salesdb, mysql_user, mysql_pw
 import mysql.connector
 from mysql.connector import Error
 from datetime import datetime
-from payment import Payment, Deposit
+from payment import Payment, deposit_only
 
 class AddPayment(tk.Tk):
     def __init__(self):
@@ -14,6 +14,7 @@ class AddPayment(tk.Tk):
         # configure the addPayment window
         self.title('Add_payment')
         self.iconbitmap('Z:\Taxi Management System\system_files\icons\payment.ico')
+        self.geometry("1000x500")
 
         self.isDeposit = tk.IntVar()  # value to identify if the payment is a deposit only
         self.payId = self.get_newPayId()
@@ -74,13 +75,24 @@ class AddPayment(tk.Tk):
         self.insert_button.grid(row=10, column=3)
         self.exit_button.grid(row=10, column=4)
 
+
     def button_okClick(self):
         response = messagebox.askokcancel("Are you sure?", "It is ok to insert?")
+        self.answer = ttk.Label(self, text="")
         if response == True:
-            self.successLabel = ttk.Label(self, text="new payment added!")
+            try:
+                print(self.driverId_input.get())
+                print(datetime.strptime(self.paidFrom_input.get(), '%Y-%m-%d'))
+                print(datetime.strptime(self.paidTo_input.get(), '%Y-%m-%d'))
+                print(datetime.strptime(self.paymentDate_input.get(), '%Y-%m-%d'))
+                print(float(self.amountPaid_input.get()))
+                print(self.receivingBank_input)
+                self.answer.config(text="new payment added!")
+            except ValueError as e:
+                self.answer.config(text= "invalid input")
         else:
-            self.successLabel = ttk.Label(self, text="operation canceled!")
-        self.successLabel.grid(row=10, column=0)
+            self.answer.config(text="operation canceled!")
+        self.answer.grid(row=10, column=0)
 
     def get_newPayId(self):
         try:
