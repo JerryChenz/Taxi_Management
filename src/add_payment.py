@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 from hanson_db import get_newpayid, get_invoiceinfo
 from datetime import datetime
-from payment import Payment, Deposit_only
+from payment import Payment, DepositOnly
 
 class AddPayment(tk.Tk):
     """add payment
@@ -24,9 +24,6 @@ class AddPayment(tk.Tk):
 
         self.isDeposit = tk.IntVar()  # value to identify if the payment is a deposit only
         self.payId = get_newpayid()
-        self.discount = 0.0
-        self.repair = 0.0
-        self.notes = ''
 
         # label
         self.win_label = tk.Label(self, text="Please enter new payments", borderwidth=1)
@@ -52,7 +49,7 @@ class AddPayment(tk.Tk):
         self.paidTo_input = tk.Entry(self, width=12, borderwidth=1)
         self.paidTo_input.insert(0, "yyyy-mm-dd")
         self.paymentDate_input = tk.Entry(self, width=12, borderwidth=1)
-        self.paymentDate_input.insert(0, "yyyy-mm-dd")
+        self.paymentDate_input.insert(0, datetime.today().strftime('%Y-%m-%d'))
         self.amountPaid_input = tk.Entry(self, width=12, borderwidth=1)
         self.receivingBank_input = tk.Entry(self, width=12, borderwidth=1)
         self.discount_input = tk.Entry(self, width=12, borderwidth=1)
@@ -60,8 +57,8 @@ class AddPayment(tk.Tk):
         self.notes_input = tk.Entry(self, width=12, borderwidth=1)
 
         # Radio Button
-        self.depositOnly_button = tk.Radiobutton(self, text="淨按金", variable=self.isDeposit, value=1)
-        self.payment_button = tk.Radiobutton(self, text="普通俾租", variable=self.isDeposit, value=2)
+        self.depositOnly_button = tk.Radiobutton(self, text="淨按金", variable=self.isDeposit, value=1, command=self.deposit_click)
+        self.payment_button = tk.Radiobutton(self, text="普通俾租", variable=self.isDeposit, value=2, command=self.payment_click)
 
         # Button
         self.ok_button = tk.Button(self, text="Ok")
@@ -99,6 +96,30 @@ class AddPayment(tk.Tk):
         self.ok_button.grid(row=10, column=3, sticky=tk.E)
         self.exit_button.grid(row=10, column=4, sticky=tk.E)
 
+    def deposit_click(self):
+        self.paidFrom_input.delete(0, 'end')
+        self.paidFrom_input.configure(state="disabled")
+        self.paidFrom_input.update()
+        self.paidTo_input.delete(0, 'end')
+        self.paidTo_input.configure(state="disabled")
+        self.paidTo_input.update()
+        self.discount_input.delete(0, 'end')
+        self.discount_input.configure(state="disabled")
+        self.discount_input.update()
+        self.repair_input.delete(0, 'end')
+        self.repair_input.configure(state="disabled")
+        self.repair_input.update()
+
+    def payment_click(self):
+        self.paidFrom_input.configure(state="normal")
+        self.paidFrom_input.update()
+        self.paidTo_input.configure(state="normal")
+        self.paidTo_input.update()
+        self.discount_input.configure(state="normal")
+        self.discount_input.update()
+        self.repair_input.configure(state="normal")
+        self.repair_input.update()
+
     def ok_click(self):
         response = messagebox.askokcancel("Are you sure?", "It is ok to insert?")
         if response:
@@ -107,30 +128,28 @@ class AddPayment(tk.Tk):
                 arg1 = self.driverId_input.get()
                 arg2 = self.payId
                 arg3 = datetime.strptime(self.paymentDate_input.get(), '%Y-%m-%d')
-                arg4 = datetime.strptime(self.paidFrom_input.get(), '%Y-%m-%d')
-                arg5 = datetime.strptime(self.paidTo_input.get(), '%Y-%m-%d')
                 arg6 = float(self.amountPaid_input.get())
                 arg7 = self.receivingBank_input.get()
-
-                # Optional Variables
-                invoiceinfo = get_invoiceinfo(self.driverId_input.get(), self.paymentDate_input.get()) #todo: may have to add a work date for discount and repair
-                self.discount = invoiceinfo[2]
-                self.repair = invoiceinfo[3]
-
-                if self.discount_input.get() != '':
-                    arg8 = self.discount + float(self.discount_input.get())
-                if self.repair_input.get() != '':
-                    arg9 = self.repair + float(self.repair_input.get())
-                if self.notes_input.get() != '':
-                    arg10 = self.notes_input.get()
+                arg10 = self.notes_input.get()
 
                 if self.isDeposit.get() == 1:
                     # deposit_only
-                    new_deposit = Deposit_only(arg1, arg2, arg3, arg6, arg7)
+                    new_deposit = DepositOnly(arg1, arg2, arg3, arg6, arg7)
                     print(new_deposit)
                     # db_insert(new_deposit)
                 elif self.isDeposit.get() == 2:
                     # normal_payment"
+                    arg4 = datetime.strptime(self.paidFrom_input.get(), '%Y-%m-%d')
+                    arg5 = datetime.strptime(self.paidTo_input.get(), '%Y-%m-%d')
+                    # Optional Variables
+                    if self.discount_input.get() != '':
+                        arg8 = float(self.discount_input.get())
+                    else:
+                        arg8 = 0
+                    if self.repair_input.get() != '':
+                        arg9 = float(self.repair_input.get())
+                    else:
+                        arg9 = 0
                     new_payment = Payment(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10)
                     print(new_payment)
                     # db_insert(new_payment)

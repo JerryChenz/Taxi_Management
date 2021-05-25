@@ -1,18 +1,18 @@
 import mysql.connector
 from mysql.connector import Error
 
-mysql_host = '192.168.1.150'
-mysql_salesdb = 'salesdb'
-mysql_inventorydb = 'inventory'
-mysql_user = 'root'
-mysql_pw = '62355983'
+MYSQL_HOST = '192.168.1.150'
+MYSQL_SALES = 'salesdb'
+MYSQL_INVENTORY = 'inventory'
+MYSQL_USER = 'root'
+MYSQL_PW = '62355983'
 
 def get_newpayid():
     try:
-        sales_connection = mysql.connector.connect(host=mysql_host,
-                                                   user=mysql_user,
-                                                   password=mysql_pw,
-                                                   database=mysql_salesdb)
+        sales_connection = mysql.connector.connect(host=MYSQL_HOST,
+                                                   user=MYSQL_USER,
+                                                   password=MYSQL_PW,
+                                                   database=MYSQL_SALES)
         if sales_connection.is_connected():
             cursor = sales_connection.cursor()
             cursor.callproc('`p_new_payment_id`')
@@ -22,7 +22,7 @@ def get_newpayid():
                 new_payment_id = "".join(result.fetchone())
 
     except Error as e:
-        print("Error while connecting to MySQL", e)
+        print("Failed to execute stored procedure: {}".format(e))
     finally:
         if sales_connection.is_connected():
             cursor.close()
@@ -33,21 +33,23 @@ def get_newpayid():
 def get_invoiceinfo(driver, work_date):
     try:
         # driver_id, work_date, discount, repair_and_others
-        invoice_args = (driver, work_date, 0, 0) # 0 are to hold value of the OUT parameter pProd
-        sales_connection = mysql.connector.connect(host=mysql_host,
-                                                   user=mysql_user,
-                                                   password=mysql_pw,
-                                                   database=mysql_salesdb)
+        invoice_args = [] # 0 are to hold value of the OUT parameter pProd
+        sales_connection = mysql.connector.connect(host=MYSQL_HOST,
+                                                   user=MYSQL_USER,
+                                                   password=MYSQL_PW,
+                                                   database=MYSQL_SALES)
         if sales_connection.is_connected():
             cursor = sales_connection.cursor()
-            cursor.callproc('`p_invoicedetail`', invoice_args)
+            cursor.callproc('`p_invoicedetail`', [driver, work_date,])
             # doc at https://dev.mysql.com/doc/connector-python/en/connector-python-api-mysqlcursor-callproc.html
 
             for result in cursor.stored_results():
-                invoice_args = "".join(result.fetchone())
+                rlist = result.fetchone()
+                invoice_args.append(rlist[0])
+                invoice_args.append(rlist[1])
 
     except Error as e:
-        print("Error while connecting to MySQL", e)
+        print("Failed to execute stored procedure: {}".format(e))
     finally:
         if sales_connection.is_connected():
             cursor.close()
