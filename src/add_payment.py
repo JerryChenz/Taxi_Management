@@ -20,7 +20,7 @@ class AddPayment(tk.Tk):
         # configure the addPayment window
         self.title('Add_payment')
         self.iconbitmap('Z:\Taxi Management System\system_files\icons\payment.ico')
-        self.geometry("1000x500")
+        self.geometry("500x200")
 
         self.isDeposit = tk.IntVar()  # value to identify if the payment is a deposit only
         self.payId = get_newpayid()
