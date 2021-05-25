@@ -1,13 +1,19 @@
 import tkinter as tk
-from tkinter import ttk
 from tkinter import messagebox
-from hanson_db import mysql_host, mysql_salesdb, mysql_user, mysql_pw
-import mysql.connector
-from mysql.connector import Error
+from hanson_db import get_newpayid, get_invoiceinfo
 from datetime import datetime
-from payment import Payment, deposit_only
+from payment import Payment, Deposit_only
 
 class AddPayment(tk.Tk):
+    """add payment
+        mandatory parameters:
+            driver_id, payment_date, amount_paid, receiving_bank
+        Scenario 1:
+        new payment with paid_from, paid_to. Optionally(DB Update on daily_invoice) with discount, repair
+        Scenario 2:
+        deposit only. It requires an insertion of a respective deposit invoice to daily_invoice table.
+    """
+
     def __init__(self):
         super().__init__()
 
@@ -17,40 +23,50 @@ class AddPayment(tk.Tk):
         self.geometry("1000x500")
 
         self.isDeposit = tk.IntVar()  # value to identify if the payment is a deposit only
-        self.payId = self.get_newPayId()
+        self.payId = get_newpayid()
+        self.discount = 0.0
+        self.repair = 0.0
+        self.notes = ''
 
         # label
-        self.win_label = ttk.Label(self, text="Please enter new payments")
-        self.drive_id_label = ttk.Label(self, text="driver_id:")
-        self.newPayId_label = ttk.Label(self, text="payment_id:")
-        self.newPayId_value_label = ttk.Label(self, text=self.payId)
-        self.paidFrom_label = ttk.Label(self, text="Paid_from:")
-        self.paidTo_label = ttk.Label(self, text="Paid_from:")
-        self.paymentDate_label = ttk.Label(self, text="payment_date:")
-        self.amountPaid_label = ttk.Label(self, text="amount_paid:")
-        self.receivingBank_label = ttk.Label(self, text="receiving_bank:")
-        self.col2Space_label = ttk.Label(self, text="    ").grid(row=0, column=2)
-        self.col5Space_label = ttk.Label(self, text="    ").grid(row=0, column=5)
+        self.win_label = tk.Label(self, text="Please enter new payments", borderwidth=1)
+        self.drive_id_label = tk.Label(self, text="Driver_id:", borderwidth=1)
+        self.newPayId_label = tk.Label(self, text="Payment_id:", borderwidth=1)
+        self.newPayId_value_label = tk.Label(self, text=self.payId, borderwidth=1)
+        self.paidFrom_label = tk.Label(self, text="Paid_from:", borderwidth=1)
+        self.paidTo_label = tk.Label(self, text="Paid_from:", borderwidth=1)
+        self.paymentDate_label = tk.Label(self, text="Payment_date:", borderwidth=1)
+        self.amountPaid_label = tk.Label(self, text="Amount_paid:", borderwidth=1)
+        self.receivingBank_label = tk.Label(self, text="Receiving_bank:", borderwidth=1)
+        self.discount_label = tk.Label(self, text="車租減免:", borderwidth=1)
+        self.repair_label = tk.Label(self, text="維修:", borderwidth=1)
+        self.notes_label = tk.Label(self, text="Notes:", borderwidth=1)
+        self.col2Space_label = tk.Label(self, text="    ").grid(row=0, column=2)
+        self.col5Space_label = tk.Label(self, text="    ").grid(row=0, column=5)
+        self.answer = tk.Label(self, text="")
 
         # Entry
-        self.driverId_input = ttk.Entry(self, width=12)
-        self.paidFrom_input = ttk.Entry(self, width=12)
+        self.driverId_input = tk.Entry(self, width=12, borderwidth=1)
+        self.paidFrom_input = tk.Entry(self, width=12, borderwidth=1)
         self.paidFrom_input.insert(0, datetime.today().strftime('%Y-%m-%d'))
-        self.paidTo_input = ttk.Entry(self, width=12)
+        self.paidTo_input = tk.Entry(self, width=12, borderwidth=1)
         self.paidTo_input.insert(0, "yyyy-mm-dd")
-        self.paymentDate_input = ttk.Entry(self, width=12)
+        self.paymentDate_input = tk.Entry(self, width=12, borderwidth=1)
         self.paymentDate_input.insert(0, "yyyy-mm-dd")
-        self.amountPaid_input = ttk.Entry(self, width=12)
-        self.receivingBank_input = ttk.Entry(self, width=12)
+        self.amountPaid_input = tk.Entry(self, width=12, borderwidth=1)
+        self.receivingBank_input = tk.Entry(self, width=12, borderwidth=1)
+        self.discount_input = tk.Entry(self, width=12, borderwidth=1)
+        self.repair_input = tk.Entry(self, width=12, borderwidth=1)
+        self.notes_input = tk.Entry(self, width=12, borderwidth=1)
 
         # Radio Button
-        self.DepositOnly_button = ttk.Radiobutton(self, text="Deposit Only", variable=self.isDeposit, value=1)
-        self.notDeposit_button = ttk.Radiobutton(self, text="Not just Deposit", variable=self.isDeposit, value=2)
+        self.depositOnly_button = tk.Radiobutton(self, text="淨按金", variable=self.isDeposit, value=1)
+        self.payment_button = tk.Radiobutton(self, text="普通俾租", variable=self.isDeposit, value=2)
 
         # Button
-        self.insert_button = ttk.Button(self, text="Ok")
-        self.insert_button['command'] = self.button_okClick
-        self.exit_button = ttk.Button(self, text="Exit", command=self.quit)
+        self.ok_button = tk.Button(self, text="Ok")
+        self.ok_button['command'] = self.ok_click
+        self.exit_button = tk.Button(self, text="Exit", command=self.quit)
 
         # Grid
         self.win_label.grid(row=0, column=0)
@@ -69,56 +85,65 @@ class AddPayment(tk.Tk):
         self.amountPaid_label.grid(row=4, column=0)
         self.amountPaid_input.grid(row=4, column=1)
 
-        self.DepositOnly_button.grid(row=5, column=0)  # todo: add a condition to check if paid_to is entered
-        self.notDeposit_button.grid(row=5, column=3)
+        self.depositOnly_button.grid(row=5, column=0)
+        self.payment_button.grid(row=5, column=3)
 
-        self.insert_button.grid(row=10, column=3)
-        self.exit_button.grid(row=10, column=4)
+        self.discount_label.grid(row=6, column=0)
+        self.discount_input.grid(row=6, column=1)
+        self.repair_label.grid(row=6, column=3)
+        self.repair_input.grid(row=6, column=4)
 
+        self.notes_label.grid(row=8, column=0)
+        self.notes_input.grid(row=8, column=1)
 
-    def button_okClick(self):
+        self.ok_button.grid(row=10, column=3, sticky=tk.E)
+        self.exit_button.grid(row=10, column=4, sticky=tk.E)
+
+    def ok_click(self):
         response = messagebox.askokcancel("Are you sure?", "It is ok to insert?")
-        self.answer = ttk.Label(self, text="")
-        if response == True:
+        if response:
             try:
-                print(self.driverId_input.get())
-                print(datetime.strptime(self.paidFrom_input.get(), '%Y-%m-%d'))
-                print(datetime.strptime(self.paidTo_input.get(), '%Y-%m-%d'))
-                print(datetime.strptime(self.paymentDate_input.get(), '%Y-%m-%d'))
-                print(float(self.amountPaid_input.get()))
-                print(self.receivingBank_input)
+                # mandatory Variables
+                arg1 = self.driverId_input.get()
+                arg2 = self.payId
+                arg3 = datetime.strptime(self.paymentDate_input.get(), '%Y-%m-%d')
+                arg4 = datetime.strptime(self.paidFrom_input.get(), '%Y-%m-%d')
+                arg5 = datetime.strptime(self.paidTo_input.get(), '%Y-%m-%d')
+                arg6 = float(self.amountPaid_input.get())
+                arg7 = self.receivingBank_input.get()
+
+                # Optional Variables
+                invoiceinfo = get_invoiceinfo(self.driverId_input.get(), self.paymentDate_input.get()) #todo: may have to add a work date for discount and repair
+                self.discount = invoiceinfo[2]
+                self.repair = invoiceinfo[3]
+
+                if self.discount_input.get() != '':
+                    arg8 = self.discount + float(self.discount_input.get())
+                if self.repair_input.get() != '':
+                    arg9 = self.repair + float(self.repair_input.get())
+                if self.notes_input.get() != '':
+                    arg10 = self.notes_input.get()
+
+                if self.isDeposit.get() == 1:
+                    # deposit_only
+                    new_deposit = Deposit_only(arg1, arg2, arg3, arg6, arg7)
+                    print(new_deposit)
+                    # db_insert(new_deposit)
+                elif self.isDeposit.get() == 2:
+                    # normal_payment"
+                    new_payment = Payment(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10)
+                    print(new_payment)
+                    # db_insert(new_payment)
+                else:
+                    raise ValueError
+
+                # window response
                 self.answer.config(text="new payment added!")
+
             except ValueError as e:
-                self.answer.config(text= "invalid input")
+                self.answer.config(text="invalid input")
         else:
             self.answer.config(text="operation canceled!")
         self.answer.grid(row=10, column=0)
-
-    def get_newPayId(self):
-        try:
-            salesdb_connection = mysql.connector.connect(host=mysql_host,
-                                                         user=mysql_user,
-                                                         password=mysql_pw,
-                                                         database=mysql_salesdb)
-            if salesdb_connection.is_connected():
-                cursor = salesdb_connection.cursor()
-                cursor.callproc('`p_new_payment_id`')
-
-                for result in cursor.stored_results():
-                    new_payment_id = "".join(result.fetchone())
-
-        except Error as e:
-            print("Error while connecting to MySQL", e)
-        finally:
-            if salesdb_connection.is_connected():
-                cursor.close()
-                salesdb_connection.close()
-                print("MySQL connection is closed")
-                return new_payment_id
-
-    def db_insert(self):
-        pass
-
-
 
 

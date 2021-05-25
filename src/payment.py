@@ -14,10 +14,20 @@ class Payment:
     self.repair = repair
     self.notes = notes
 
-class deposit_only(Payment):
+  def __str__(self):
+    rep = 'test'
+
+class Deposit_only(Payment):
   def __init__(self, d_Id, pay_Id, pay_Date, paid, bank):
     self.driverId = d_Id
     self.paymentId = pay_Id
     self.paymentDate = pay_Date
     self.amountPaid = paid
     self.recevingBank = bank
+
+'''
+  def __repr__(self):
+    rep = 'Payment(' + self.driverId + ',' + self.paymentId + ',' + self.paymentDate + ',' + self.paidFrom\
+          + self.paidTo + ',' + self.amountPaid + ',' + self.recevingBank + ',' + self.discount + ','\
+          self.repair + ',' + self.notes +')'
+'''
