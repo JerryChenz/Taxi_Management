@@ -7,6 +7,7 @@ MYSQL_INVENTORY = 'inventory'
 MYSQL_USER = 'root'
 MYSQL_PW = '62355983'
 
+
 def get_newpayid():
     try:
         sales_connection = mysql.connector.connect(host=MYSQL_HOST,
@@ -27,45 +28,38 @@ def get_newpayid():
         if sales_connection.is_connected():
             cursor.close()
             sales_connection.close()
-            print("MySQL connection is closed")
+            # print("MySQL connection is closed")
             return new_payment_id
 
-def get_invoiceinfo(driver, work_date):
+
+def get_lastpaid(d_id):
     try:
-        # driver_id, work_date, discount, repair_and_others
-        invoice_args = [] # 0 are to hold value of the OUT parameter pProd
         sales_connection = mysql.connector.connect(host=MYSQL_HOST,
                                                    user=MYSQL_USER,
                                                    password=MYSQL_PW,
                                                    database=MYSQL_SALES)
         if sales_connection.is_connected():
+            args = [d_id, 0]
             cursor = sales_connection.cursor()
-            cursor.callproc('`p_invoicedetail`', [driver, work_date,])
+            result_arg = cursor.callproc('p_last_paid', args)
             # doc at https://dev.mysql.com/doc/connector-python/en/connector-python-api-mysqlcursor-callproc.html
-
-            for result in cursor.stored_results():
-                rlist = result.fetchone()
-                invoice_args.append(rlist[0])
-                invoice_args.append(rlist[1])
-
+            last_paid = result_arg[1]
     except Error as e:
         print("Failed to execute stored procedure: {}".format(e))
     finally:
         if sales_connection.is_connected():
             cursor.close()
             sales_connection.close()
-            print("MySQL connection is closed")
-            return invoice_args
+            # print("MySQL connection is closed")
+            return last_paid
 
-    def db_insert(payment_object):
-        pass
-"""
-sql_result = get_invoiceinfo('D1', '2021/5/19')
-print(sql_result[0])
-print(sql_result[1])
-print(sql_result[2])
-print(sql_result[3])
-"""
+
+'''
+sql_result = get_newpayid()
+sql_result1 = get_lastpaid('D1')
+print(sql_result)
+print(sql_result1)
+'''
 
 '''
 try:

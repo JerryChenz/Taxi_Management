@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
-from hanson_db import get_newpayid, get_invoiceinfo
+from hanson_db import get_newpayid, get_lastpaid
 from datetime import datetime
 from payment import Payment, DepositOnly
 
@@ -121,11 +121,14 @@ class AddPayment(tk.Tk):
         self.repair_input.update()
 
     def ok_click(self):
-        response = messagebox.askokcancel("Are you sure?", "It is ok to insert?")
+
+        # initial checks on paid date
+        arg1 = self.driverId_input.get()
+        last_paid = get_lastpaid(arg1)
+        response = messagebox.askokcancel("Are you sure ?", f"The driver last paid on {last_paid}. \nIt is ok to insert?")
         if response:
             try:
                 # mandatory Variables
-                arg1 = self.driverId_input.get()
                 arg2 = self.payId
                 arg3 = datetime.strptime(self.paymentDate_input.get(), '%Y-%m-%d')
                 arg6 = float(self.amountPaid_input.get())
@@ -134,9 +137,9 @@ class AddPayment(tk.Tk):
 
                 if self.isDeposit.get() == 1:
                     # deposit_only
-                    new_deposit = DepositOnly(arg1, arg2, arg3, arg6, arg7)
+                    new_deposit = DepositOnly(arg1, arg2, arg3, arg6, arg7, arg10)
                     print(new_deposit)
-                    # db_insert(new_deposit)
+                    new_deposit.insert_deposit()
                 elif self.isDeposit.get() == 2:
                     # normal_payment"
                     arg4 = datetime.strptime(self.paidFrom_input.get(), '%Y-%m-%d')
@@ -152,7 +155,7 @@ class AddPayment(tk.Tk):
                         arg9 = 0
                     new_payment = Payment(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10)
                     print(new_payment)
-                    # db_insert(new_payment)
+                    new_payment.insert_payment()
                 else:
                     raise ValueError
 
@@ -164,5 +167,3 @@ class AddPayment(tk.Tk):
         else:
             self.answer.config(text="operation canceled!")
         self.answer.grid(row=10, column=0)
-
-
