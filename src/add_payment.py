@@ -161,6 +161,8 @@ class AddPayment(tk.Tk):
 
                 # window response
                 self.answer.config(text="new payment added!")
+                self.payId = get_newpayid()
+                self.newPayId_value_label.config(text=self.payId)
 
             except ValueError as e:
                 self.answer.config(text="invalid input")
