@@ -1,8 +1,9 @@
 import tkinter as tk
 from tkinter import messagebox
-from hanson_db import get_newpayid, get_lastpaid
-from datetime import datetime
+from hanson_db import get_newpayid, get_lastperiod
+from datetime import datetime, timedelta
 from payment import Payment, DepositOnly
+
 
 class AddPayment(tk.Tk):
     """add payment
@@ -20,7 +21,7 @@ class AddPayment(tk.Tk):
         # configure the addPayment window
         self.title('Add_payment')
         self.iconbitmap('Z:\Taxi Management System\system_files\icons\payment.ico')
-        self.geometry("500x200")
+        self.geometry("510x200")
 
         self.isDeposit = tk.IntVar()  # value to identify if the payment is a deposit only
         self.payId = get_newpayid()
@@ -57,8 +58,10 @@ class AddPayment(tk.Tk):
         self.notes_input = tk.Entry(self, width=12, borderwidth=1)
 
         # Radio Button
-        self.depositOnly_button = tk.Radiobutton(self, text="淨按金", variable=self.isDeposit, value=1, command=self.deposit_click)
-        self.payment_button = tk.Radiobutton(self, text="普通俾租", variable=self.isDeposit, value=2, command=self.payment_click)
+        self.depositOnly_button = tk.Radiobutton(self, text="淨按金", variable=self.isDeposit, value=1,
+                                                 command=self.deposit_click)
+        self.payment_button = tk.Radiobutton(self, text="普通俾租", variable=self.isDeposit, value=2,
+                                             command=self.payment_click)
 
         # Button
         self.ok_button = tk.Button(self, text="Ok")
@@ -124,8 +127,10 @@ class AddPayment(tk.Tk):
 
         # initial checks on paid date
         arg1 = self.driverId_input.get()
-        last_paid = get_lastpaid(arg1)
-        response = messagebox.askokcancel("Are you sure ?", f"The driver last paid on {last_paid}. \nIt is ok to insert?")
+        last_pf = get_lastperiod(arg1)[0]  # last paid_from date
+        last_pt = get_lastperiod(arg1)[1]  # last paid_to date
+        response = messagebox.askokcancel("Are you sure ?", f"The driver last paid on {last_pt}. "
+                                                            f"\nIt is ok to insert?")
         if response:
             try:
                 # mandatory Variables
@@ -138,7 +143,7 @@ class AddPayment(tk.Tk):
                 if self.isDeposit.get() == 1:
                     # deposit_only
                     new_deposit = DepositOnly(arg1, arg2, arg3, arg6, arg7, arg10)
-                    print(new_deposit)
+                    #  print(new_deposit)
                     new_deposit.insert_deposit()
                 elif self.isDeposit.get() == 2:
                     # normal_payment"
@@ -154,8 +159,13 @@ class AddPayment(tk.Tk):
                     else:
                         arg9 = 0
                     new_payment = Payment(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10)
-                    print(new_payment)
-                    new_payment.insert_payment()
+                    #  print(new_payment)
+                    if (arg4.strftime('%Y-%m-%d') == ((datetime.strptime(last_pt, '%Y-%m-%d') + \
+                    timedelta(days=1)).strftime('%Y-%m-%d')) or (arg4.strftime('%Y-%m-%d') == last_pf and
+                                                                 arg5.strftime('%Y-%m-%d') == last_pt)):
+                        new_payment.insert_payment()
+                    else:
+                        raise KeyError
                 else:
                     raise ValueError
 
@@ -166,6 +176,8 @@ class AddPayment(tk.Tk):
 
             except ValueError as e:
                 self.answer.config(text="invalid input")
+            except KeyError as e:
+                self.answer.config(text="invalid key. (可能俾租時間錯了)")
         else:
             self.answer.config(text="operation canceled!")
         self.answer.grid(row=10, column=0)
