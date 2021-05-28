@@ -30,7 +30,6 @@ class AddPayment(tk.Tk):
         self.win_label = tk.Label(self, text="Please enter new payments", borderwidth=1)
         self.drive_id_label = tk.Label(self, text="Driver_id:", borderwidth=1)
         self.newPayId_label = tk.Label(self, text="Payment_id:", borderwidth=1)
-        self.newPayId_value_label = tk.Label(self, text=self.payId, borderwidth=1)
         self.paidFrom_label = tk.Label(self, text="Paid_from:", borderwidth=1)
         self.paidTo_label = tk.Label(self, text="Paid_from:", borderwidth=1)
         self.paymentDate_label = tk.Label(self, text="Payment_date:", borderwidth=1)
@@ -45,6 +44,8 @@ class AddPayment(tk.Tk):
 
         # Entry
         self.driverId_input = tk.Entry(self, width=12, borderwidth=1)
+        self.newPayId_input = tk.Entry(self, width=12, borderwidth=1)
+        self.newPayId_input.insert(0, self.payId)
         self.paidFrom_input = tk.Entry(self, width=12, borderwidth=1)
         self.paidFrom_input.insert(0, datetime.today().strftime('%Y-%m-%d'))
         self.paidTo_input = tk.Entry(self, width=12, borderwidth=1)
@@ -73,7 +74,7 @@ class AddPayment(tk.Tk):
         self.drive_id_label.grid(row=1, column=0)
         self.driverId_input.grid(row=1, column=1)
         self.newPayId_label.grid(row=1, column=3)
-        self.newPayId_value_label.grid(row=1, column=4)
+        self.newPayId_input.grid(row=1, column=4)
         self.paidFrom_label.grid(row=2, column=0)
         self.paidFrom_input.grid(row=2, column=1)
         self.paidTo_label.grid(row=2, column=3)
@@ -134,7 +135,7 @@ class AddPayment(tk.Tk):
         if response:
             try:
                 # mandatory Variables
-                arg2 = self.payId
+                arg2 = self.newPayId_input.get()
                 arg3 = datetime.strptime(self.paymentDate_input.get(), '%Y-%m-%d')
                 arg6 = float(self.amountPaid_input.get())
                 arg7 = self.receivingBank_input.get()
@@ -160,6 +161,7 @@ class AddPayment(tk.Tk):
                         arg9 = 0
                     new_payment = Payment(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10)
                     #  print(new_payment)
+                    # check to see if the payment period is valid before insertion
                     if (arg4.strftime('%Y-%m-%d') == ((datetime.strptime(last_pt, '%Y-%m-%d') + \
                     timedelta(days=1)).strftime('%Y-%m-%d')) or (arg4.strftime('%Y-%m-%d') == last_pf and
                                                                  arg5.strftime('%Y-%m-%d') == last_pt)):
@@ -172,10 +174,11 @@ class AddPayment(tk.Tk):
                 # window response
                 self.answer.config(text="new payment added!")
                 self.payId = get_newpayid()
-                self.newPayId_value_label.config(text=self.payId)
+                self.newPayId_input.delete(0, 'end')
+                self.newPayId_input.insert(0, self.payId)
 
             except ValueError as e:
-                self.answer.config(text="invalid input")
+                self.answer.config(text="invalid inputs")
             except KeyError as e:
                 self.answer.config(text="invalid key. (可能俾租時間錯了)")
         else:
