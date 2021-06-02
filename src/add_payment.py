@@ -147,7 +147,7 @@ class AddPayment(tk.Tk):
                     #  print(new_deposit)
                     new_deposit.insert_deposit()
                 elif self.isDeposit.get() == 2:
-                    # normal_payment"
+                    # normal_payment
                     arg4 = datetime.strptime(self.paidFrom_input.get(), '%Y-%m-%d')
                     arg5 = datetime.strptime(self.paidTo_input.get(), '%Y-%m-%d')
                     # Optional Variables
@@ -162,7 +162,7 @@ class AddPayment(tk.Tk):
                     new_payment = Payment(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10)
                     #  print(new_payment)
                     # check to see if the payment period is valid before insertion
-                    if (arg4.strftime('%Y-%m-%d') == ((datetime.strptime(last_pt, '%Y-%m-%d') + \
+                    if (last_pt is None) or (arg4.strftime('%Y-%m-%d') == ((datetime.strptime(last_pt, '%Y-%m-%d') + \
                     timedelta(days=1)).strftime('%Y-%m-%d')) or (arg4.strftime('%Y-%m-%d') == last_pf and
                                                                  arg5.strftime('%Y-%m-%d') == last_pt)):
                         new_payment.insert_payment()
