@@ -31,7 +31,7 @@ class AddPayment(tk.Tk):
         self.drive_id_label = tk.Label(self, text="Driver_id:", borderwidth=1)
         self.newPayId_label = tk.Label(self, text="Payment_id:", borderwidth=1)
         self.paidFrom_label = tk.Label(self, text="Paid_from:", borderwidth=1)
-        self.paidTo_label = tk.Label(self, text="Paid_from:", borderwidth=1)
+        self.paidTo_label = tk.Label(self, text="Paid_to:", borderwidth=1)
         self.paymentDate_label = tk.Label(self, text="Payment_date:", borderwidth=1)
         self.amountPaid_label = tk.Label(self, text="Amount_paid:", borderwidth=1)
         self.receivingBank_label = tk.Label(self, text="Receiving_bank:", borderwidth=1)
